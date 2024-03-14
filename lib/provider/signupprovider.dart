@@ -1,14 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_2/Model/credential.dart';
 import 'package:firebase_2/api/apiresponse.dart';
 import 'package:firebase_2/api/networkstatus.dart';
-import 'package:flutter/material.dart';
+import 'package:firebase_2/api/apiservice.dart';
+import 'package:firebase_2/api/apiserviceimpl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../api/apiservice.dart';
-import '../api/apiserviceimpl.dart';
-
 class SignUpProvider extends ChangeNotifier {
-  String? name, address, phone, password, email;
+  String? name, address, phone, email;
+  String? password, newPassword, retypePassword;
   String? errorMessage;
   bool isUserExist = false;
   List<Credential> credentialList = [];
@@ -38,12 +38,20 @@ class SignUpProvider extends ChangeNotifier {
     if (signUpStatus != NetworkStatus.loading) {
       setsignUpStatus(NetworkStatus.loading);
     }
+
+    if (newPassword != retypePassword) {
+      errorMessage = "Passwords do not match.";
+      setsignUpStatus(NetworkStatus.error);
+      return;
+    }
+
     Credential credential = Credential(
-        address: address,
-        email: email,
-        name: name,
-        password: password,
-        phone: phone);
+      address: address,
+      email: email,
+      name: name,
+      password: newPassword,
+      phone: phone,
+    );
     ApiResponse response = await apiservice.saveCredential(credential);
     if (response.networkStatus == NetworkStatus.success) {
       setsignUpStatus(NetworkStatus.success);

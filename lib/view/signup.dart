@@ -27,7 +27,7 @@ class _SignUpState extends State<SignUp> {
       child: Scaffold(
         appBar: AppBar(
           title: Text("SignUp"),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.orange,
         ),
         body: Consumer<SignUpProvider>(
           builder: (context, SignupProvider, child) => Padding(
@@ -191,7 +191,7 @@ class _SignUpState extends State<SignUp> {
               }
             },
             onPrimary: Colors.white,
-            primary: Colors.red,
+            primary: Colors.orange,
             child: Text("Submit"),
           )
         ],

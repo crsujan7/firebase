@@ -1,3 +1,4 @@
+import 'package:firebase_2/view/homepage.dart';
 import 'package:firebase_2/view/signup.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -72,8 +73,7 @@ class _OtpCodeState extends State<OtpCode> {
 
       // Sign the user in (or link) with the credential
       await FirebaseAuth.instance.signInWithCredential(credential);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => SignUp()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
     } catch (e) {}
   }
 }

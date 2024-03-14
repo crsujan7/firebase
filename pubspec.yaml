@@ -55,6 +55,8 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   google_fonts: ^6.1.0
   tap_debouncer: ^2.2.0
+  connectivity_plus: ^5.0.2
+  google_maps_flutter: ^2.5.3
 
 dev_dependencies:
   flutter_test:

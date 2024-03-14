@@ -1,8 +1,13 @@
 import 'package:firebase_2/provider/signupprovider.dart';
 import 'package:firebase_2/view/credentialdetails.dart';
+import 'package:firebase_2/view/googlemaps.dart';
 import 'package:firebase_2/view/homepage.dart';
 import 'package:firebase_2/view/login.dart';
 import 'package:firebase_2/view/otp.dart';
+import 'package:firebase_2/view/profile.dart';
+import 'package:firebase_2/view/profile1.dart';
+import 'package:firebase_2/view/register.dart';
+import 'package:firebase_2/view/signup.dart';
 import 'package:firebase_2/view/uploadimage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -51,15 +56,14 @@ class _MyAppState extends State<MyApp> {
       child: Consumer<SignUpProvider>(
         builder: (context, signUpProvider, child) {
           return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Flutter Demo',
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-              useMaterial3: true,
-            ),
-            // home: signUpProvider.isUserExist ? HomePage() : Login(),
-            home: Login(),
-          );
+              debugShowCheckedModeBanner: false,
+              title: 'Flutter Demo',
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                useMaterial3: true,
+              ),
+              // home: signUpProvider.isUserExist ? HomePage() : Login(),
+              home: Login());
         },
       ),
     );

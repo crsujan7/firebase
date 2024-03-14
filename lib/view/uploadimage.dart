@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:firebase_2/view/homepage.dart';
+import 'package:firebase_2/helper/helper.dart';
+import 'package:firebase_2/view/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +11,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../helper/helper.dart';
-
 class UploadImage extends StatefulWidget {
-  UploadImage({super.key});
+  UploadImage({Key? key}) : super(key: key);
 
   @override
   State<UploadImage> createState() => _UploadImageState();
@@ -28,157 +27,117 @@ class _UploadImageState extends State<UploadImage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-          child: Stack(
-        children: [ui(), loader ? Helper.backdropFilter(context) : SizedBox()],
-      )),
-    );
-  }
-
-  ui() {
-    return Column(
-      children: [
-        SizedBox(
-          height: 75,
-        ),
-        Center(
-          child: Container(
-            child: GestureDetector(
-              onTap: () {
-                pickImagefromgallery();
-              },
-              child: Container(
-                height: 300,
-                width: 340,
-                child: DottedBorder(
-                    borderType: BorderType.RRect,
-                    borderPadding: EdgeInsets.all(0.02),
-                    radius: Radius.circular(12),
-                    child: file == null
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 20, top: 50),
-                            child: Column(
-                              children: [
-                                Icon(Icons.file_upload_outlined, size: 100),
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                  "upload profile picture",
-                                  style: TextStyle(
-                                      fontSize: 29,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                SizedBox(
-                                  height: 40,
-                                ),
-                              ],
-                            ),
-                          )
-                        // : Image.file(
-                        //     file!,
-                        //     fit: BoxFit.cover,
-                        //   )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              file!,
-                              fit: BoxFit.cover,
-                              width: 340,
-                              height: 300,
-                            ),
-                          )),
-              ),
+        child: Stack(
+          children: [
+            ui(context),
+            Center(
+              child: loader ? CircularProgressIndicator() : SizedBox(),
             ),
-          ),
+          ],
         ),
-        SizedBox(
-          height: 50,
-        ),
-        ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                primary: Color.fromARGB(255, 96, 141, 13),
-                onPrimary: Colors.white),
-            onPressed: () {
-              UploadImageToFirebase();
-            },
-            child: Text(
-              "submit",
-              style: TextStyle(fontSize: 20),
-            )),
-        SizedBox(height: 100),
-        ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                primary: Color.fromARGB(255, 70, 190, 34),
-                onPrimary: Colors.white),
-            onPressed: () {
-              googleLogin();
-            },
-            child: SizedBox(
-              height: 40,
-              width: 220,
-              child: Row(
-                children: [
-                  Icon(FontAwesomeIcons.google),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Text(
-                    "Login with google",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
-                  ),
-                ],
-              ),
-            ))
-      ],
+      ),
     );
   }
 
-  pickImagefromgallery() async {
+  pickImageFromGallery() async {
     final ImagePicker picker = ImagePicker();
-// Pick an image.
     image = await picker.pickImage(source: ImageSource.gallery);
-    print(image);
     if (image == null) return;
     file = File(image!.path);
-    setState(() {
-      file;
-      image;
-    });
+    setState(() {});
   }
 
   UploadImageToFirebase() async {
     setState(() {
       loader = true;
     });
-    final storageReference = FirebaseStorage.instance.ref();
-    var uploadValue = storageReference.child(image!.name);
-    await uploadValue.putFile(file!);
-    final downloadUrl =
-        await storageReference.child(image!.name).getDownloadURL();
-
-    //or
-    //
-    //
-    print(downloadUrl);
-
-    var data = {"image": downloadUrl};
-    await FirebaseFirestore.instance
-        .collection("imagetest")
-        .add(data)
-        .then((value) {
-      setState(() {
-        loader = false;
-        file = null;
-        image = null;
-      });
+    final storageRef = FirebaseStorage.instance.ref();
+    var uploadTask = storageRef.child(image!.path).putFile(file!);
+    await uploadTask.whenComplete(() async {
+      var downloadUrl = await storageRef.child(image!.path).getDownloadURL();
+      print(downloadUrl);
+      var data = {"image": downloadUrl};
+      await FirebaseFirestore.instance.collection("ImageUrl").add(data).then(
+        (value) {
+          setState(() {
+            loader = false;
+            image = null;
+            file = null;
+          });
+        },
+      );
     });
   }
 
-  googleLogin() async {
+  Widget ui(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.3,
+        ),
+        Align(
+          alignment: Alignment.center,
+          child: GestureDetector(
+            onTap: () {
+              pickImageFromGallery();
+            },
+            child: DottedBorder(
+              color: Colors.orange,
+              padding: EdgeInsets.only(left: 50, right: 50, bottom: 30),
+              child: Container(
+                child: file == null
+                    ? Column(
+                        children: [
+                          Icon(
+                            Icons.upload,
+                            size: 150,
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.01,
+                          ),
+                          Text(
+                            "Upload a picture",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Image.file(
+                        file!,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.04),
+        ElevatedButton(
+          onPressed: () {
+            UploadImageToFirebase();
+          },
+          style: ElevatedButton.styleFrom(
+            primary: Colors.orange,
+            onPrimary: Colors.white,
+          ),
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            child: Center(
+              child: Text("Continue"),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  googleLogin(BuildContext context) async {
     String? token;
 
     FirebaseAuth auth = FirebaseAuth.instance;
     User? user;
+
     final GoogleSignIn googleSignIn = GoogleSignIn();
 
     final GoogleSignInAccount? googleSignInAccount =
@@ -199,12 +158,16 @@ class _UploadImageState extends State<UploadImage> {
 
         user = userCredential.user;
         print(user!.phoneNumber);
-        // var token = await user.getIdToken();
+        // var token= await user.getIdToken();
         // print(token);
-        await user.getIdToken().then((value) {
-          token = value;
-          print(token);
-        });
+        //ya mathi ko 2 line ra tal ko same ho
+        await user.getIdToken().then(
+          (value) {
+            //aaba value ma Idtoken basxa
+            token = value;
+            print(token);
+          },
+        );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'account-exists-with-different-credential') {
           // handle the error here
@@ -215,11 +178,9 @@ class _UploadImageState extends State<UploadImage> {
         // handle the error here
       }
       if (token != null) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ));
+        //not equal
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => Login()), (route) => false);
       }
     }
   }
