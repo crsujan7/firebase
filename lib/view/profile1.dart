@@ -4,12 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_2/view/change_password.dart';
 import 'package:firebase_2/view/login.dart';
 import 'package:firebase_2/view/profile.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ProfileUd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
+    User? user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -28,42 +29,26 @@ class ProfileUd extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    // backgroundImage: user?.photoURL != null
-                    //     ? NetworkImage(user!.photoURL!)
-                    //     : AssetImage('assets/ProfileUd_pic.jpg'),
+                    backgroundImage: NetworkImage(user?.photoURL ?? ""),
                   ),
                   SizedBox(height: 16),
-                  FutureBuilder<QuerySnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('credential')
-                        .where('name', isEqualTo: user?.displayName)
-                        .get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                  FutureBuilder<String>(
+                    future: _fetchUserName(user),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<String> snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Text('Loading...');
+                      } else if (snapshot.hasError) {
+                        print('Error: ${snapshot.error}');
+                        return Text('Error: ${snapshot.error}');
                       } else {
-                        if (snapshot.hasError) {
-                          print('Error: ${snapshot.error}');
-                          return Text('Error: ${snapshot.error}');
-                        } else {
-                          if (snapshot.hasData &&
-                              snapshot.data!.docs.isNotEmpty) {
-                            // User found, extract 'name' field
-                            var userData = snapshot.data!.docs.first;
-                            return Text(
-                              userData['name'] ?? 'Name not found',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            );
-                          } else {
-                            // User not found
-                            print('User data not found');
-                            return Text('User data not found');
-                          }
-                        }
+                        return Text(
+                          snapshot.data ?? 'Name not found',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
                       }
                     },
                   ),
@@ -122,7 +107,8 @@ class ProfileUd extends StatelessWidget {
                                 child: Text("No"),
                               ),
                               TextButton(
-                                onPressed: () {
+                                onPressed: () async {
+                                  await FirebaseAuth.instance.signOut();
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -144,5 +130,48 @@ class ProfileUd extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<String> _fetchUserName(User? user) async {
+    if (user != null) {
+      if (user.providerData.any((info) => info.providerId == 'firebase')) {
+        // Fetch user name from Firestore collection 'credential'
+        var querySnapshot = await FirebaseFirestore.instance
+            .collection('credential')
+            .where('email', isEqualTo: user.email)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          return querySnapshot.docs.first['name'];
+        }
+      } else if (user.providerData
+          .any((info) => info.providerId == 'google.com')) {
+        // For Google sign-in, return user's display name
+        return user.displayName ?? 'Name not found';
+      }
+    }
+    // Return 'Name not found' if user is not signed in or any other cases
+    return 'Name not found';
+  }
+
+  Future<ImageProvider<Object>?> _getUserPhoto(User? user) async {
+    if (user != null) {
+      if (user.providerData.any((info) => info.providerId == 'firebase')) {
+        // For Firebase sign-in, use the photoURL if available
+        if (user.photoURL != null) {
+          return NetworkImage(user.photoURL!);
+        }
+      } else if (user.providerData
+          .any((info) => info.providerId == 'google.com')) {
+        // For Google sign-in, fetch the user's photo from GoogleSignIn
+        final googleSignIn = GoogleSignIn();
+        final googleUser = await googleSignIn.signInSilently();
+        if (googleUser != null && googleUser.photoUrl != null) {
+          return NetworkImage(googleUser.photoUrl!);
+        }
+      }
+    }
+    // Return null if photo is not available or user is not signed in
+    return null;
   }
 }

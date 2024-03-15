@@ -57,6 +57,7 @@ dependencies:
   tap_debouncer: ^2.2.0
   connectivity_plus: ^5.0.2
   google_maps_flutter: ^2.5.3
+  khalti: ^2.0.0
 
 dev_dependencies:
   flutter_test:

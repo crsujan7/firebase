@@ -33,16 +33,16 @@ class CustomForm extends StatelessWidget {
       keyboardType: keyboardType,
       validator: validator,
       decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        labelText: labelText,
-        hintText: hintText,
-        suffixIcon: suffixIcon,
-        prefixIcon: prefixIcon,
-        fillColor: fillColor,
-      ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          labelText: labelText,
+          hintText: hintText,
+          suffixIcon: suffixIcon,
+          prefixIcon: prefixIcon,
+          fillColor: fillColor,
+          labelStyle: TextStyle(color: Colors.orange)),
     );
   }
 }

@@ -43,13 +43,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
         // Handle phone number updates
         if (_phoneNumber != null) {
+          // await user.updatePhoneNumber(_phoneNumber!);
+
           // Update the phone number in Firestore
           await _usersCollection
               .doc(user.uid)
               .update({'phoneNumber': _phoneNumber});
-
-          // After updating the phone number, set _phoneNumber to null to prevent further updates
-          _phoneNumber = null;
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

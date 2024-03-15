@@ -1,197 +1,182 @@
-import 'package:firebase_2/customui/custombutton.dart';
-import 'package:firebase_2/view/login.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../api/networkstatus.dart';
+import '../customui/custombutton.dart';
 import '../customui/customtextformfield.dart';
 import '../helper/helper.dart';
 import '../provider/signupprovider.dart';
 import '../util/string_const.dart';
+import 'login.dart';
 
 class SignUp extends StatefulWidget {
-  SignUp({super.key});
+  SignUp({Key? key}) : super(key: key);
 
   @override
   State<SignUp> createState() => _SignUpState();
 }
 
 class _SignUpState extends State<SignUp> {
-  List<String> itemList = ["Male", "Female"];
-
   final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("SignUp"),
-          backgroundColor: Colors.orange,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "SignUp",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
         ),
-        body: Consumer<SignUpProvider>(
-          builder: (context, SignupProvider, child) => Padding(
-            padding: const EdgeInsets.only(top: 15),
-            child: SingleChildScrollView(
-              child: Stack(
-                children: [ui(SignupProvider, context), loader(SignupProvider)],
+        backgroundColor: Colors.orange,
+      ),
+      body: Consumer<SignUpProvider>(
+        builder: (context, signUpProvider, child) => Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height * 0.3,
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(90),
+                      bottomRight: Radius.circular(90),
+                      topLeft: Radius.circular(90),
+                      topRight: Radius.circular(90)),
+                ),
+                child: Center(
+                  child: Image.asset(
+                    "assets/images/icon.png",
+                    height: MediaQuery.of(context).size.height * 0.2,
+                  ),
+                ),
               ),
-            ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: SingleChildScrollView(
+                    child: _buildForm(signUpProvider),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  loader(SignUpProvider signUpProvider) {
-    if (signUpProvider.signUpStatus == NetworkStatus.loading) {
-      return Helper.backdropFilter(context);
-    } else {
-      return SizedBox();
-    }
-  }
-
-  Widget ui(SignUpProvider signupProvider, BuildContext context) {
+  Widget _buildForm(SignUpProvider signUpProvider) {
     return Form(
       key: _formKey,
       child: Column(
         children: [
           CustomForm(
-            onChanged: (value) {
-              signupProvider.name = value;
-            },
-            obscureText: false,
+            onChanged: (value) => signUpProvider.name = value,
             labelText: nameStr,
+            // labelStyle: TextStyle(color: Colors.orange),
             validator: (value) {
               if (value!.isEmpty) {
                 return nameValidationStr;
-              } else {
-                return null;
+              } else if (!RegExp(r'^[a-zA-Z]+(?:\s[a-zA-Z]+)?$')
+                  .hasMatch(value)) {
+                return 'Enter a valid name';
               }
+              return null;
             },
-            suffixIcon: const Icon(Icons.person),
+            suffixIcon: const Icon(Icons.person, color: Colors.orange),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           CustomForm(
-            onChanged: (value) {
-              signupProvider.email = value;
-            },
+            onChanged: (value) => signUpProvider.email = value,
+            labelText: emailStr,
+            // labelStyle: TextStyle(color: Colors.orange),
             validator: (value) {
               if (value!.isEmpty) {
                 return emailValidationStr;
-              } else {
-                return null;
+              } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                  .hasMatch(value)) {
+                return 'Enter a valid email address';
               }
+              return null;
             },
-            obscureText: false,
-            labelText: emailStr,
-            suffixIcon: const Icon(Icons.email),
+            suffixIcon: const Icon(Icons.email, color: Colors.orange),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           CustomForm(
-            onChanged: (value) {
-              signupProvider.address = value;
-            },
+            onChanged: (value) => signUpProvider.address = value,
+            labelText: addressStr,
+            // labelStyle: TextStyle(color: Colors.orange),
             validator: (value) {
               if (value!.isEmpty) {
                 return addressValidationStr;
-              } else {
-                return null;
+              } else if (!RegExp(r'^[a-zA-Z0-9\s\,\#]+$').hasMatch(value)) {
+                return 'Enter a valid address';
               }
+              return null;
             },
-            obscureText: false,
-            labelText: addressStr,
-            suffixIcon: const Icon(Icons.location_city),
+            suffixIcon: const Icon(Icons.location_city, color: Colors.orange),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           CustomForm(
-            onChanged: (value) {
-              signupProvider.phone = value;
-            },
+            onChanged: (value) => signUpProvider.phone = value,
+            labelText: contactStr,
+            // labelStyle: TextStyle(color: Colors.orange),
             validator: (value) {
               if (value!.isEmpty) {
                 return contactValidationStr;
-              } else {
-                return null;
+              } else if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                return 'Enter a valid 10 digit phone number';
               }
+              return null;
             },
-            obscureText: false,
-            labelText: contactStr,
-            suffixIcon: const Icon(Icons.phone),
+            suffixIcon: const Icon(Icons.phone, color: Colors.orange),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           CustomForm(
-              onChanged: (value) {
-                signupProvider.password = value;
-              },
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return passwordValidationStr;
-                } else {
-                  return null;
-                }
-              },
-              labelText: passwordStr,
-              obscureText: signupProvider.showPassword ? false : true,
-              suffixIcon: signupProvider.showPassword
-                  ? IconButton(
-                      onPressed: () {
-                        signupProvider.passwordVisibility(false);
-                      },
-                      icon: const Icon(Icons.visibility))
-                  : IconButton(
-                      onPressed: () {
-                        signupProvider.passwordVisibility(true);
-                      },
-                      icon: const Icon(Icons.visibility_off))),
-          const SizedBox(
-            height: 10,
+            onChanged: (value) => signUpProvider.password = value,
+            labelText: passwordStr,
+            obscureText: signUpProvider.showPassword ? false : true,
+            // labelStyle: TextStyle(color: Colors.orange),
+            validator: (value) {
+              if (value!.isEmpty) {
+                return passwordValidationStr;
+              } else if (!RegExp(
+                      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+                  .hasMatch(value)) {
+                return 'Password must contain at least 8 characters, including uppercase, lowercase, numbers, and special characters.';
+              }
+              return null;
+            },
+            suffixIcon: signUpProvider.showPassword
+                ? IconButton(
+                    onPressed: () => signUpProvider.passwordVisibility(false),
+                    icon: const Icon(Icons.visibility, color: Colors.orange),
+                  )
+                : IconButton(
+                    onPressed: () => signUpProvider.passwordVisibility(true),
+                    icon:
+                        const Icon(Icons.visibility_off, color: Colors.orange),
+                  ),
           ),
-          // CustomDropDown(
-          //   validator: (value) {
-          //     if (value == null || value.isEmpty) {
-          //       return genderValidationStr;
-          //     } else {
-          //       return null;
-          //     }
-          //   },
-          //   icon: Icon(Icons.people),
-          //   decoration: InputDecoration(
-          //     labelText: genderStr,
-          //     border: OutlineInputBorder(),
-          //   ),
-          //   itemList: itemList,
-          //   value: signupProvider.gender,
-          //   onChanged: (value) {
-          //     signupProvider.gender = value;
-          //   },
-          // ),
-          SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 10),
           Custombutton(
+            primary: Colors.orange,
+            onPrimary: Colors.white,
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                await signupProvider.saveCredentials();
-                if (signupProvider.signUpStatus == NetworkStatus.success) {
+                await signUpProvider.saveCredentials();
+                if (signUpProvider.signUpStatus == NetworkStatus.success) {
                   Helper.snackBarMessage("Registered Successfully", context);
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Login()));
-                } else if (signupProvider.signUpStatus == NetworkStatus.error) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => Login()),
+                  );
+                } else if (signUpProvider.signUpStatus == NetworkStatus.error) {
                   Helper.snackBarMessage("Registration Failed", context);
                 }
               }
             },
-            onPrimary: Colors.white,
-            primary: Colors.orange,
             child: Text("Submit"),
           )
         ],
