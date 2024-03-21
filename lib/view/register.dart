@@ -42,12 +42,9 @@ class _logUpState extends State<logUp> {
     if (!_isConnected) {
       return Scaffold(
         body: Center(
-          child: 
-          Text(
+          child: Text(
             "No internet connection",
-            
             style: TextStyle(fontSize: 20),
-            
           ),
         ),
       );
@@ -180,8 +177,8 @@ class _logUpState extends State<logUp> {
               SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  primary: colorStr,
-                  onPrimary: Colors.white,
+                  foregroundColor: Colors.white,
+                  backgroundColor: colorStr,
                 ),
                 onPressed: () {
                   GoogleLogin(context);

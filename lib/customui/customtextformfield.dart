@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class CustomForm extends StatelessWidget {
   final String? labelText;
@@ -10,6 +11,7 @@ class CustomForm extends StatelessWidget {
   final String? hintText;
   final TextInputType? keyboardType;
   final Color? fillColor;
+  final TextEditingController? controller;
 
   const CustomForm({
     Key? key,
@@ -22,6 +24,7 @@ class CustomForm extends StatelessWidget {
     this.hintText,
     this.keyboardType,
     this.fillColor,
+    this.controller,
   }) : super(key: key);
 
   @override
@@ -29,6 +32,7 @@ class CustomForm extends StatelessWidget {
     return TextFormField(
       autovalidateMode: AutovalidateMode.onUserInteraction,
       onChanged: onChanged,
+      controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,

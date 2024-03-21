@@ -118,8 +118,8 @@ class _UploadImageState extends State<UploadImage> {
             UploadImageToFirebase();
           },
           style: ElevatedButton.styleFrom(
-            primary: Colors.orange,
-            onPrimary: Colors.white,
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.orange,
           ),
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.5,

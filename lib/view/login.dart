@@ -2,6 +2,7 @@ import 'package:firebase_2/customui/custombutton.dart';
 import 'package:firebase_2/customui/customtextformfield.dart';
 import 'package:firebase_2/provider/signupprovider.dart';
 import 'package:firebase_2/util/string_const.dart';
+import 'package:firebase_2/view/forgotpassword.dart';
 import 'package:firebase_2/view/homepage.dart';
 import 'package:firebase_2/view/profile.dart';
 import 'package:firebase_2/view/profile1.dart';
@@ -124,7 +125,11 @@ class _LoginState extends State<Login> {
                             SizedBox(height: 20),
                             GestureDetector(
                               onTap: () {
-                                // Handle forgot password action
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: ((context) =>
+                                            ForgetPasswordPage())));
                               },
                               child: Text(
                                 'Forgot Password?',
@@ -172,8 +177,8 @@ class _LoginState extends State<Login> {
                             ),
                             ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    primary: Colors.orange,
-                                    onPrimary: Colors.white),
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: Colors.orange),
                                 onPressed: () {
                                   googleLogin();
                                 },

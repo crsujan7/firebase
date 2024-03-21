@@ -173,7 +173,7 @@ class _SignUpState extends State<SignUp> {
                     MaterialPageRoute(builder: (context) => Login()),
                   );
                 } else if (signUpProvider.signUpStatus == NetworkStatus.error) {
-                  Helper.snackBarMessage("Registration Failed", context);
+                  Helper.snackBarMessage("Account already exist", context);
                 }
               }
             },
