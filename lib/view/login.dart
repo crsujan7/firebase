@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 
 import '../api/networkstatus.dart';
 import '../helper/helper.dart';
+import 'forgetpassword.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -129,7 +130,7 @@ class _LoginState extends State<Login> {
                                     context,
                                     MaterialPageRoute(
                                         builder: ((context) =>
-                                            ForgetPasswordPage())));
+                                            ForgotPasswordPage())));
                               },
                               child: Text(
                                 'Forgot Password?',

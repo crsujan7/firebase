@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpProvider extends ChangeNotifier {
   TextEditingController emailController = TextEditingController();
-  String? name, address, phone, email;
+  String? name, address, phone, email, id;
   String? password, newPassword, retypePassword;
   String? errorMessage;
   bool isUserExist = false;
@@ -55,6 +55,7 @@ class SignUpProvider extends ChangeNotifier {
       );
       // If user creation successful, proceed to save other data
       Credential credential = Credential(
+        id: id,
         address: address,
         email: email,
         name: name,

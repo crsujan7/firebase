@@ -23,30 +23,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (user != null) {
       try {
-        if (user.providerData.isNotEmpty &&
-            user.providerData[0].providerId == 'google.com') {
-          // If the user signed in with Google, use Google provider data
-          userData = {
-            'name': user.displayName ?? 'N/A',
-            'email': user.email ?? 'N/A',
-            'contact': 'N/A', // Add Google-specific data as needed
-            'address': 'N/A', // Add Google-specific data as needed
-            'photoUrl': user.photoURL ??
-                '', // Set photoUrl for both Google and email/password login
-          };
-        } else {
-          // If the user signed in with email/password, fetch data from Firestore
-          DocumentSnapshot<Map<String, dynamic>> snapshot =
-              await FirebaseFirestore.instance
-                  .collection('credential')
-                  .doc(user.uid)
-                  .get();
+        QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+            .instance
+            .collection('credential')
+            .where('email', isEqualTo: user.email)
+            .get();
 
-          if (snapshot.exists) {
-            userData = snapshot.data();
-            // Ensure that the 'photoUrl' field is set, even if it's empty
-            userData!['photoUrl'] ??= '';
-          }
+        if (snapshot.docs.isNotEmpty) {
+          userData = snapshot.docs.first.data();
+          userData!['photoUrl'] ??= '';
+        } else {
+          print('User document does not exist in Firestore');
         }
 
         setState(() {});
@@ -63,9 +50,9 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Profile",
+          "Account Info",
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: Color.fromARGB(255, 224, 120, 0), // Uber's brand color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -76,62 +63,55 @@ class _ProfilePageState extends State<ProfilePage> {
               if (user != null)
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 50.0),
+                    padding: const EdgeInsets.only(top: 20.0, bottom: 10.0),
                     child: CircleAvatar(
-                      backgroundImage: user.photoURL != null &&
-                              user.photoURL!.isNotEmpty
-                          ? NetworkImage(user.photoURL!)
-                          : NetworkImage(
-                              'https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg'), // Provide a placeholder image URL
-                      radius: 75,
+                      backgroundImage:
+                          user.photoURL != null && user.photoURL!.isNotEmpty
+                              ? NetworkImage(user.photoURL!)
+                              : NetworkImage(""),
+                      radius: 60, // Adjust size to match Uber's UI
                     ),
                   ),
                 ),
+              SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.only(top: 16.0),
                 child: Center(
-                    child: Text("Profile Details",
-                        style: TextStyle(fontSize: 30))),
+                    child: Text("Account Information",
+                        style: TextStyle(fontSize: 24, color: Colors.black))),
               ),
               SizedBox(height: 20),
-              buildProfileField("Name:", userData?['name'] ?? 'N/A'),
-              buildProfileField("Email:", userData?['email'] ?? 'N/A'),
-              buildProfileField("Contact:", userData?['contact'] ?? 'N/A'),
-              buildProfileField("Address:", userData?['address'] ?? 'N/A'),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          primary: Colors.orange, onPrimary: Colors.white),
-                      onPressed: () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EditProfilePage(user: user, userData: userData),
-                          ),
-                        ).then((_) {
-                          // Update user data after returning from the EditProfilePage
-                          fetchUserData();
-                        });
-                      },
-                      child: Text('Edit Profile'),
+              buildProfileField("Name", userData?['name'] ?? 'N/A',
+                  icon: Icons.person),
+              buildProfileField("Email", userData?['email'] ?? 'N/A',
+                  isEmail: true, icon: Icons.email),
+              buildProfileField("Contact", userData?['phone'] ?? 'N/A',
+                  icon: Icons.phone),
+              buildProfileField("Address", userData?['address'] ?? 'N/A',
+                  icon: Icons.location_on),
+              SizedBox(height: 20), // Added SizedBox for spacing
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.black,
+                    onPrimary: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                    ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            primary: Colors.orange, onPrimary: Colors.white),
-                        onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfileUd(),
-                            )),
-                        child: Text(
-                          "Register as service provider",
-                        ))
-                  ],
+                  ),
+                  onPressed: () async {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditProfilePage(user: user, userData: userData),
+                      ),
+                    ).then((_) {
+                      fetchUserData();
+                    });
+                  },
+                  child: Text('Edit Profile', style: TextStyle(fontSize: 20)),
                 ),
               ),
             ],
@@ -141,32 +121,57 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget buildProfileField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0),
-      child: Column(
+  Widget buildProfileField(String label, String value,
+      {bool isEmail = false, IconData? icon}) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Container(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(value, style: TextStyle(fontSize: 20)),
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 30,
+              color: Color(0xFF090909), // Uber's brand color
             ),
-            foregroundDecoration: BoxDecoration(
-              color: Colors.black12,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            width: MediaQuery.of(context).size.width * 0.95,
-            height: MediaQuery.of(context).size.height * 0.055,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(width: 1),
-              color: Colors.green[50],
+            SizedBox(width: 10),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF090909), // Uber's brand color
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 10),
         ],
       ),
     );

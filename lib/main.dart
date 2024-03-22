@@ -1,6 +1,7 @@
 import 'package:firebase_2/provider/signupprovider.dart';
 import 'package:firebase_2/view/credentialdetails.dart';
 import 'package:firebase_2/view/googlemaps.dart';
+import 'package:firebase_2/view/hello.dart';
 import 'package:firebase_2/view/homepage.dart';
 import 'package:firebase_2/view/login.dart';
 import 'package:firebase_2/view/otp.dart';

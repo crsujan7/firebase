@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'login.dart';
-import 'profile.dart';
+import 'profile.dart'; // Assuming you have a ProfilePage with similar UI
 
 class EditProfilePage extends StatefulWidget {
   final User? user;
@@ -23,41 +21,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? _phone;
   String? _address;
 
-  final CollectionReference _usersCollection =
-      FirebaseFirestore.instance.collection('credential');
-
   @override
   void initState() {
     super.initState();
     final User? user = widget.user;
 
-    if (user != null) {
-      _name = user.displayName;
-      _email = user.email;
-      _phone = user.phoneNumber;
-    }
-
-    // Fetch additional user data from Firestore and set the address
-    if (widget.userData != null) {
-      _address = widget.userData!['address'] as String?;
-    }
-
-    // Fetch additional user data from Firestore using user's UID
-    FirebaseFirestore.instance
-        .collection('credential')
-        .doc(user!.uid)
-        .get()
-        .then((docSnapshot) {
-      if (docSnapshot.exists) {
-        setState(() {
-          _name = docSnapshot.get('name');
-          _phone = docSnapshot.get('phone');
-          _address = docSnapshot.get('address');
-        });
-      }
-    }).catchError((error) {
-      print('Error fetching user data: $error');
-    });
+    _name = widget.userData?['name'] ?? user?.displayName ?? '';
+    _email = user?.email;
+    _phone = widget.userData?['phone'] ?? user?.phoneNumber ?? '';
+    _address = widget.userData?['address'] ?? '';
   }
 
   Future<void> _updateProfile() async {
@@ -66,26 +38,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
       try {
         await user.updateProfile(displayName: _name);
 
-        if (_email != null) {
-          await user.updateEmail(_email!);
-        }
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('credential')
+            .where('email', isEqualTo: user.email)
+            .get();
 
-        await _usersCollection.doc(user.uid).update({
-          'name': _name,
-          'email': _email,
-          'phone': _phone,
-          'address': _address,
-        });
+        if (querySnapshot.docs.isNotEmpty) {
+          await querySnapshot.docs.first.reference.update({
+            'name': _name,
+            'phone': _phone,
+            'address': _address,
+          });
+        } else {
+          print('User document not found');
+          return;
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile updated successfully')),
         );
 
-        Navigator.pop(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ProfilePage()), // Pass user here
-        );
+        Navigator.pop(context); // Go back to previous screen
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error updating profile: $e')),
@@ -98,7 +71,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        await _usersCollection.doc(user.uid).delete();
         await user.delete();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +79,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Login()),
+          MaterialPageRoute(builder: (context) => ProfilePage()),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +96,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit Profile'),
-        backgroundColor: Colors.orange,
+        backgroundColor: Color.fromARGB(255, 224, 120, 0), // Uber's brand color
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -143,47 +115,48 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ),
                 SizedBox(height: 20),
-                buildProfileField("Name", _name, (value) => _name = value),
-                buildProfileField("Email", _email, (value) => _email = value),
-                buildProfileField("Contact", _phone, (value) => _phone = value),
                 buildProfileField(
-                    "Address", _address, (value) => _address = value),
+                    Icons.person, "Name", _name, (value) => _name = value),
+                buildProfileField(Icons.email, "Email", _email, (value) {}),
+                buildProfileField(
+                    Icons.phone, "Contact", _phone, (value) => _phone = value),
+                buildProfileField(Icons.location_on, "Address", _address,
+                    (value) => _address = value),
                 SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _updateProfile();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.orange,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      ),
-                      child: Text(
-                        'Update Profile',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _updateProfile();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.black, // Uber's brand color
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                    SizedBox(width: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        _deleteProfile();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.red,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      ),
-                      child: Text(
-                        'Delete Profile',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                  ),
+                  child: Text(
+                    'Update Profile',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    _deleteProfile();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.red,
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                  ],
+                  ),
+                  child: Text(
+                    'Delete Profile',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
                 SizedBox(height: 20),
               ],
@@ -194,22 +167,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget buildProfileField(
-      String label, String? value, ValueChanged<String?> onChanged) {
+  Widget buildProfileField(IconData icon, String label, String? value,
+      ValueChanged<String?> onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        initialValue: value,
-        onChanged: onChanged,
-        style: TextStyle(fontSize: 18),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-              fontSize: 16,
-              color: Colors.black), // Changed label color to black
-          border: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: Colors.black), // Added outline border color
+      child: ListTile(
+        leading: Icon(icon),
+        title: TextFormField(
+          initialValue: value,
+          onChanged: onChanged,
+          enabled: label != "Email", // Disable email field
+          readOnly: label == "Email", // Make email field read-only
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter $label';
+            }
+            return null;
+          },
+          style: TextStyle(
+              fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(fontSize: 18, color: Colors.black),
+            hintText: 'Enter $label',
+            hintStyle: TextStyle(fontSize: 16, color: Colors.grey[400]),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.black),
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         ),
       ),
